@@ -5,6 +5,8 @@ trackers (waist, feet) drive the whole body -- hips, legs, spine and head, arms 
 engine (not an Unreal plugin, though it grew out of WrPuppets), no dependencies, a static library: four sources, five
 headers; namespace `wrpuppets::fbt`.
 
+[![WrPuppets IK FBT in action (YouTube)](https://img.youtube.com/vi/OzhYR3ugzLk/maxresdefault.jpg)](https://www.youtube.com/watch?v=OzhYR3ugzLk)
+
 The solvers never look at a bone's name: a skeleton is a **rig file** with **roles** (below), so any game's or
 engine's humanoid works the same way. A game uses it through a small adapter of its own: read the devices, run the
 calibration and the solver, write the solved rotations into its skeleton.
