@@ -231,8 +231,19 @@ void IkStack::Solve(Pose& pose, const Goal goals[kGoalCount], const StackOptions
         }
         if (options.spine && goals[kGoalHead].active && m_spine.count >= 3)
             terms[count++] = {pose.modelPos[m_spine.bones[0]], goals[kGoalHead].pos, m_spine.total * options.spineReachShare, options.headPull};
+        // The cost itself, for the line search: convex (a stiffness plus squared overshoots of convex distances), so it
+        // has one minimum, which moves smoothly with the goals.
+        auto cost = [&](Vec3 at) {
+            float e = options.hipsStiffness * Dot(at, at);
+            for (int i = 0; i < count; ++i) {
+                const float over = Length(terms[i].root + at - terms[i].goal) - terms[i].reach;
+                if (over > 0) e += terms[i].weight * over * over;
+            }
+            return e;
+        };
         Vec3 d{};
-        for (int it = 0; it < 8 && count > 0; ++it) {
+        float current = cost(d);
+        for (int it = 0; it < 16 && count > 0; ++it) {
             // Normal equations of the linearised problem: (w_hips I + sum w u u^T) step = -(w_hips d + sum w e u).
             float A[3][3] = {{options.hipsStiffness, 0, 0}, {0, options.hipsStiffness, 0}, {0, 0, options.hipsStiffness}};
             Vec3 g = d * options.hipsStiffness;
@@ -262,8 +273,18 @@ void IkStack::Solve(Pose& pose, const Goal goals[kGoalCount], const StackOptions
                 x[col] = (M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1]) - M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0]) +
                           M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0])) / det;
             }
-            const Vec3 step{x[0], x[1], x[2]};
+            // Backtracking: a Gauss-Newton step on a one-sided cost overshoots when a term switches on or off on the
+            // way (a leg starting or stopping to pull), and an overshoot left by the iteration limit was a jump of the
+            // hips between neighbouring goals (stress test: 3 cm in a 5 mm foot step). Halve it until the cost drops.
+            Vec3 step{x[0], x[1], x[2]};
+            float next = cost(d + step);
+            for (int halve = 0; halve < 12 && next > current; ++halve) {
+                step = step * 0.5f;
+                next = cost(d + step);
+            }
+            if (next > current) break;   // no descent left: at the minimum
             d = d + step;
+            current = next;
             if (Length(step) < 1e-5f) break;
         }
         if (debug) debug->hipsShift = d;
