@@ -114,6 +114,10 @@ The published algorithms it uses, and where the approach comes from. Everything 
   legs' bending plane from the feet, the twist solver. WrPuppets ran on Unreal Engine, which provided the framework
   and some of the IK nodes it used; this library implements the whole approach from scratch, with no engine.
 
+## Thanks
+
+Thanks to [paull78](https://github.com/paull78) to help debug and develop WrPuppets.
+
 ## Licence
 
 MIT (see LICENSE).
