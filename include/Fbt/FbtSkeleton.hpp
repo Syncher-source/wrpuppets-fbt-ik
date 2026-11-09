@@ -25,6 +25,10 @@ struct Pose {
 class Skeleton {
 public:
     bool Load(const char* path, std::string* error = nullptr);
+    // The same skeleton without a file: the bones as the file would list them (indexed by position, parents before
+    // their children, each with its reference pose) and the roles (role, bone index). For an adapter that reads the
+    // skeleton from its engine at runtime and has no reason to write it out.
+    bool Build(std::vector<Bone> bones, std::vector<std::pair<std::string, int>> roles, std::string* error = nullptr);
     int Count() const { return static_cast<int>(m_bones.size()); }
     const Bone& BoneAt(int i) const { return m_bones[i]; }
     // A role from the file ("hips", "head", "left_foot", "spine0", ...); -1 when missing.

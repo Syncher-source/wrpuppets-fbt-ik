@@ -1,4 +1,5 @@
 #include "Fbt/FbtSkeleton.hpp"
+#include <utility>
 #include <cstdio>
 #include <cstring>
 
@@ -39,6 +40,18 @@ bool Skeleton::Load(const char* path, std::string* error) {
     fclose(f);
     if (m_bones.empty()) {
         if (error) *error = std::string("no bones in ") + path;
+        return false;
+    }
+    return true;
+}
+
+bool Skeleton::Build(std::vector<Bone> bones, std::vector<std::pair<std::string, int>> roles, std::string* error) {
+    m_bones = std::move(bones);
+    m_roles = std::move(roles);
+    for (int i = 0; i < Count(); ++i)
+        if (m_bones[i].parent >= i) m_bones[i].parent = -1;   // as Load: a parent must come before its child
+    if (m_bones.empty()) {
+        if (error) *error = "no bones";
         return false;
     }
     return true;

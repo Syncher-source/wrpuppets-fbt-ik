@@ -68,7 +68,8 @@ ik.Solve(pose, goals, options);
 
 ## The rig file
 
-Plain text, `#` starts a comment:
+A skeleton comes from a rig file (`Skeleton::Load`), or straight from memory (`Skeleton::Build`: the same bones and
+roles, for an adapter that reads them from its engine at runtime). The file is plain text, `#` starts a comment:
 
 ```
 role <role> <bone index>
